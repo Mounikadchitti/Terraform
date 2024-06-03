@@ -1,0 +1,54 @@
+provider:
+   name: azurerm
+  features: {}
+
+resource:
+  - type: azurerm_resource_group
+    name: resa
+    properties:
+      location: West Europe
+
+  - type: azurerm_virtual_network
+    name: azure-network
+    properties:
+      resource_group_name: resa
+      location: West Europe
+      address_space:
+        - 10.0.0.0/16
+
+  - type: azurerm_subnet
+    name: internal
+    properties:
+      resource_group_name: resa
+      virtual_network_name: azure-network
+      address_prefixes:
+        - 10.0.2.0/24
+
+  - type: azurerm_windows_virtual_machine_scale_set
+    name: example-vmss
+    properties:
+      resource_group_name: example-resources
+      location: West Europe
+      sku: standard_F2
+      instances: 2
+      admin_password: Devimounika@21
+      admin_username: Mounika
+      computer_name_prefix: vm-
+
+      source_image_reference:
+        publisher: MicrosoftWindowsServer
+        offer: WindowsServer
+        sku: 2016-Datacenter-Server-Core
+        version: latest
+
+      os_disk:
+        storage_account_type: Standard_LRS
+        caching: ReadWrite
+
+      network_interface:
+        - name: example
+          primary: true
+          ip_configuration:
+            - name: internal
+              primary: true
+              subnet_id: ${azurerm_subnet.internal.id}
